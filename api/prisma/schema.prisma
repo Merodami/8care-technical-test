@@ -1,0 +1,278 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RoleName {
+  SUPER_ADMIN
+  COORDINATOR
+  CAREGIVER
+  PATIENT
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  GITHUB
+}
+
+enum AuditStatus {
+  SUCCESS
+  FAILURE
+  PENDING
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  BUSY
+  UNAVAILABLE
+  OFF_DUTY
+}
+
+model User {
+  id                String    @id @default(uuid()) @db.Uuid
+  email             String    @unique
+  passwordHash      String?   @map("password_hash")
+  emailVerified     Boolean   @default(false) @map("email_verified")
+  emailVerifiedAt   DateTime? @map("email_verified_at")
+  isActive          Boolean   @default(true) @map("is_active")
+  isOtpEnabled      Boolean   @default(false) @map("is_otp_enabled")
+  otpSecret         String?   @map("otp_secret")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+  deletedAt         DateTime? @map("deleted_at")
+
+  userRoles                UserRole[]
+  profile                  Profile?
+  authProviders            AuthProvider_Model[]        @relation("UserAuthProviders")
+  refreshTokens            RefreshToken[]
+  emailVerificationTokens  EmailVerificationToken[]
+  passwordResetTokens      PasswordResetToken[]
+  auditLogs                AuditLog[]
+  backupCodes              UserBackupCode[]
+  assignedRoles            UserRole[]                  @relation("AssignedBy")
+
+  @@index([email])
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Role {
+  id            String    @id @default(uuid()) @db.Uuid
+  name          RoleName  @unique
+  description   String?
+  isSystemRole  Boolean   @default(false) @map("is_system_role")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  rolePermissions RolePermission[]
+  userRoles       UserRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid()) @db.Uuid
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       String   @map("role_id") @db.Uuid
+  permissionId String   @map("permission_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  userId     String    @map("user_id") @db.Uuid
+  roleId     String    @map("role_id") @db.Uuid
+  assignedBy String?   @map("assigned_by") @db.Uuid
+  assignedAt DateTime  @default(now()) @map("assigned_at")
+
+  user     User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role     Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assigner User? @relation("AssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model Profile {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @unique @map("user_id") @db.Uuid
+  firstName   String    @map("first_name")
+  lastName    String    @map("last_name")
+  phone       String?
+  avatarUrl   String?   @map("avatar_url")
+  address     String?
+  dateOfBirth DateTime? @map("date_of_birth")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caregiverProfile  CaregiverProfile?
+  patientProfile    PatientProfile?
+  coordinatorProfile CoordinatorProfile?
+
+  @@map("profiles")
+}
+
+model CaregiverProfile {
+  id                 String             @id @default(uuid()) @db.Uuid
+  profileId          String             @unique @map("profile_id") @db.Uuid
+  licenseNumber      String?            @map("license_number")
+  specialization     String?
+  yearsOfExperience  Int?               @map("years_of_experience")
+  availabilityStatus AvailabilityStatus @default(AVAILABLE) @map("availability_status")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @updatedAt @map("updated_at")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("caregiver_profiles")
+}
+
+model PatientProfile {
+  id                    String   @id @default(uuid()) @db.Uuid
+  profileId             String   @unique @map("profile_id") @db.Uuid
+  medicalRecordNumber   String?  @map("medical_record_number")
+  emergencyContactName  String?  @map("emergency_contact_name")
+  emergencyContactPhone String?  @map("emergency_contact_phone")
+  allergies             String?
+  medicalConditions     String?  @map("medical_conditions")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("patient_profiles")
+}
+
+model CoordinatorProfile {
+  id         String   @id @default(uuid()) @db.Uuid
+  profileId  String   @unique @map("profile_id") @db.Uuid
+  department String?
+  employeeId String?  @map("employee_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("coordinator_profiles")
+}
+
+model AuthProvider_Model {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  provider       AuthProvider
+  providerUserId String       @map("provider_user_id")
+  accessToken    String?      @map("access_token")
+  refreshToken   String?      @map("refresh_token")
+  linkedAt       DateTime     @default(now()) @map("linked_at")
+
+  user User @relation("UserAuthProviders", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("auth_providers")
+}
+
+model RefreshToken {
+  id                 String         @id @default(uuid()) @db.Uuid
+  userId             String         @map("user_id") @db.Uuid
+  tokenHash          String         @unique @map("token_hash")
+  expiresAt          DateTime       @map("expires_at")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  revokedAt          DateTime?      @map("revoked_at")
+  replacedByTokenId  String?        @unique @map("replaced_by_token_id") @db.Uuid
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replacedBy    RefreshToken? @relation("TokenReplacement", fields: [replacedByTokenId], references: [id], onDelete: SetNull)
+  replacedToken RefreshToken? @relation("TokenReplacement")
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  usedAt    DateTime? @map("used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("email_verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  usedAt    DateTime? @map("used_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}
+
+model AuditLog {
+  id           String      @id @default(uuid()) @db.Uuid
+  userId       String?     @map("user_id") @db.Uuid
+  action       String
+  resourceType String?     @map("resource_type")
+  resourceId   String?     @map("resource_id")
+  ipAddress    String?     @map("ip_address")
+  userAgent    String?     @map("user_agent")
+  metadata     Json?
+  status       AuditStatus @default(SUCCESS)
+  createdAt    DateTime    @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model UserBackupCode {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  codeHash  String    @map("code_hash")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_backup_codes")
+}

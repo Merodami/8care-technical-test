@@ -1,0 +1,180 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:alpine
+    container_name: 8care-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-8care}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - 8care-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: 8care-redis
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - 8care-network
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: 8care-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - 8care-network
+    restart: unless-stopped
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: 8care-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set minio http://minio:9000 ${MINIO_ROOT_USER:-minioadmin} ${MINIO_ROOT_PASSWORD:-minioadmin123};
+      mc mb minio/8care-avatars --ignore-existing;
+      mc anonymous set public minio/8care-avatars;
+      exit 0;
+      "
+    networks:
+      - 8care-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: 8care-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - 8care-network
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      target: development
+    container_name: 8care-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${API_PORT:-4000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-8care}?schema=public
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis123}@redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-your-super-secret-jwt-access-key-change-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your-super-secret-jwt-refresh-key-change-in-production}
+      JWT_ACCESS_EXPIRATION: ${JWT_ACCESS_EXPIRATION:-15m}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-30d}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-http://localhost:4000/api/v1/auth/google/callback}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      GITHUB_CALLBACK_URL: ${GITHUB_CALLBACK_URL:-http://localhost:4000/api/v1/auth/github/callback}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT:-minio}
+      MINIO_PORT: ${MINIO_PORT:-9000}
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-minioadmin123}
+      MINIO_USE_SSL: ${MINIO_USE_SSL:-false}
+      SMTP_HOST: ${SMTP_HOST:-mailhog}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@8care.ai}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      SEED_DATA: ${SEED_DATA:-true}
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+      - /app/dist
+    ports:
+      - "4000:4000"
+    command: npm run start:dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - 8care-network
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      target: development
+    container_name: 8care-web
+    depends_on:
+      api:
+        condition: service_started
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+    volumes:
+      - ./web:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    command: npm run dev
+    networks:
+      - 8care-network
+    restart: unless-stopped
+
+networks:
+  8care-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
