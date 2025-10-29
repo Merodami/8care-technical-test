@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks'
 import { usersAPI, type QueryUsersParams } from '@/lib/api/users'
-import { User, RoleName } from '@/types'
+import { User, RoleName, RoleNameEnum } from '@/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -37,7 +37,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { registerSchema, type RegisterFormData } from '@/lib/validations'
 
 export default function UsersPage() {
-  const { user: currentUser, hasPermission } = useAuth()
+  const { user: currentUser } = useAuth()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -62,7 +62,7 @@ export default function UsersPage() {
     resolver: zodResolver(registerSchema),
   })
 
-  const canManageUsers = hasPermission('users.write')
+  const canManageUsers = currentUser?.permissions.includes('users.write') || false
 
   const fetchUsers = useCallback(async () => {
     try {
@@ -142,13 +142,13 @@ export default function UsersPage() {
 
   const getRoleBadgeColor = (role: RoleName) => {
     switch (role) {
-      case RoleName.SUPER_ADMIN:
+      case RoleNameEnum.SUPER_ADMIN:
         return 'bg-purple-100 text-purple-800'
-      case RoleName.COORDINATOR:
+      case RoleNameEnum.COORDINATOR:
         return 'bg-blue-100 text-blue-800'
-      case RoleName.CAREGIVER:
+      case RoleNameEnum.CAREGIVER:
         return 'bg-green-100 text-green-800'
-      case RoleName.PATIENT:
+      case RoleNameEnum.PATIENT:
         return 'bg-orange-100 text-orange-800'
       default:
         return 'bg-slate-100 text-slate-800'
@@ -204,10 +204,10 @@ export default function UsersPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value={RoleName.SUPER_ADMIN}>Super Admin</SelectItem>
-            <SelectItem value={RoleName.COORDINATOR}>Coordinator</SelectItem>
-            <SelectItem value={RoleName.CAREGIVER}>Caregiver</SelectItem>
-            <SelectItem value={RoleName.PATIENT}>Patient</SelectItem>
+            <SelectItem value={RoleNameEnum.SUPER_ADMIN}>Super Admin</SelectItem>
+            <SelectItem value={RoleNameEnum.COORDINATOR}>Coordinator</SelectItem>
+            <SelectItem value={RoleNameEnum.CAREGIVER}>Caregiver</SelectItem>
+            <SelectItem value={RoleNameEnum.PATIENT}>Patient</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -264,8 +264,8 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Badge className={getRoleBadgeColor(user.roles[0]?.name)}>
-                      {user.roles[0]?.name.replace('_', ' ')}
+                    <Badge className={getRoleBadgeColor(user.roles[0])}>
+                      {user.roles[0]?.replace('_', ' ')}
                     </Badge>
                   </TableCell>
                   <TableCell>

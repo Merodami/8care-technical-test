@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
-import { RoleName } from '@/types'
+import { RoleNameEnum } from '@/types'
 
 const profileSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
@@ -164,9 +164,9 @@ export default function ProfilePage() {
     )
   }
 
-  const userRole = user.roles[0]?.name
-  const isCaregiver = userRole === RoleName.CAREGIVER
-  const isPatient = userRole === RoleName.PATIENT
+  const userRole = user.roles[0]
+  const isCaregiver = userRole === RoleNameEnum.CAREGIVER
+  const isPatient = userRole === RoleNameEnum.PATIENT
 
   return (
     <div className="p-6 space-y-6 max-w-4xl">

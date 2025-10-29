@@ -1,5 +1,5 @@
 import apiClient from './client'
-import { User, PaginatedResponse } from '@/types'
+import { User, PaginatedResponse, Profile } from '@/types'
 
 export interface QueryUsersParams {
   page?: number
@@ -7,6 +7,21 @@ export interface QueryUsersParams {
   role?: string
   search?: string
   isActive?: boolean
+}
+
+export interface CreateUserData {
+  email: string
+  profile: Omit<
+    Profile,
+    | 'id'
+    | 'userId'
+    | 'avatarUrl'
+    | 'address'
+    | 'dateOfBirth'
+    | 'caregiverProfile'
+    | 'patientProfile'
+    | 'coordinatorProfile'
+  >
 }
 
 export const usersAPI = {
@@ -20,7 +35,7 @@ export const usersAPI = {
     return response.data
   },
 
-  createUser: async (data: Partial<User>): Promise<User> => {
+  createUser: async (data: CreateUserData): Promise<User> => {
     const response = await apiClient.post('/users', data)
     return response.data
   },

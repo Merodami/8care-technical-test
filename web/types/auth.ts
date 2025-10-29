@@ -1,5 +1,18 @@
 export type RoleName = 'SUPER_ADMIN' | 'COORDINATOR' | 'CAREGIVER' | 'PATIENT'
 
+export const RoleNameEnum = {
+  SUPER_ADMIN: 'SUPER_ADMIN' as const,
+  COORDINATOR: 'COORDINATOR' as const,
+  CAREGIVER: 'CAREGIVER' as const,
+  PATIENT: 'PATIENT' as const,
+}
+
+export interface AuthProvider {
+  id: string
+  provider: 'google' | 'github'
+  linkedAt: string
+}
+
 export interface User {
   id: string
   email: string
@@ -9,6 +22,7 @@ export interface User {
   roles: RoleName[]
   permissions: string[]
   profile?: Profile
+  authProviders?: AuthProvider[]
   createdAt: string
   updatedAt: string
 }
