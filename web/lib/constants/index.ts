@@ -1,4 +1,4 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 export const ROUTES = {
   HOME: '/',
@@ -11,14 +11,14 @@ export const ROUTES = {
   USERS: '/users',
   PROFILE: '/profile',
   SETTINGS: '/settings',
-} as const;
+} as const
 
 export const ROLES = {
   SUPER_ADMIN: 'SUPER_ADMIN',
   COORDINATOR: 'COORDINATOR',
   CAREGIVER: 'CAREGIVER',
   PATIENT: 'PATIENT',
-} as const;
+} as const
 
 export const PERMISSIONS = {
   USERS_CREATE: 'users.create',
@@ -32,4 +32,4 @@ export const PERMISSIONS = {
   ROLES_UPDATE: 'roles.update',
   ROLES_DELETE: 'roles.delete',
   AUDIT_READ: 'audit.read',
-} as const;
+} as const

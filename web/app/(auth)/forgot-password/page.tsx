@@ -1,21 +1,28 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/lib/validations';
-import { authAPI } from '@/lib/api';
-import { ROUTES } from '@/lib/constants';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { forgotPasswordSchema, type ForgotPasswordFormData } from '@/lib/validations'
+import { authAPI } from '@/lib/api'
+import { ROUTES } from '@/lib/constants'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function ForgotPasswordPage() {
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   const {
     register,
@@ -23,17 +30,21 @@ export default function ForgotPasswordPage() {
     formState: { errors, isSubmitting },
   } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
-  });
+  })
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      setError(null);
-      await authAPI.forgotPassword(data.email);
-      setSuccess(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send reset email');
+      setError(null)
+      await authAPI.forgotPassword(data.email)
+      setSuccess(true)
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined
+      setError(errorMessage || 'Failed to send reset email')
     }
-  };
+  }
 
   if (success) {
     return (
@@ -55,7 +66,7 @@ export default function ForgotPasswordPage() {
           </Link>
         </CardFooter>
       </Card>
-    );
+    )
   }
 
   return (
@@ -81,9 +92,7 @@ export default function ForgotPasswordPage() {
               {...register('email')}
               disabled={isSubmitting}
             />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
@@ -97,5 +106,5 @@ export default function ForgotPasswordPage() {
         </Link>
       </CardFooter>
     </Card>
-  );
+  )
 }

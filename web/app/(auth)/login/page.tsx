@@ -1,23 +1,30 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/hooks';
-import { loginSchema, type LoginFormData } from '@/lib/validations';
-import { ROUTES } from '@/lib/constants';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useAuth } from '@/hooks'
+import { loginSchema, type LoginFormData } from '@/lib/validations'
+import { ROUTES } from '@/lib/constants'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function LoginPage() {
-  const router = useRouter();
-  const { login, loginWithGoogle, loginWithGitHub, pendingOTP } = useAuth();
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
+  const { login, loginWithGoogle, loginWithGitHub, pendingOTP } = useAuth()
+  const [error, setError] = useState<string | null>(null)
 
   const {
     register,
@@ -25,22 +32,26 @@ export default function LoginPage() {
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
-  });
+  })
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      setError(null);
-      await login(data);
+      setError(null)
+      await login(data)
 
       if (pendingOTP) {
-        router.push('/otp-verify');
+        router.push('/otp-verify')
       } else {
-        router.push(ROUTES.DASHBOARD);
+        router.push(ROUTES.DASHBOARD)
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid email or password');
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined
+      setError(errorMessage || 'Invalid email or password')
     }
-  };
+  }
 
   return (
     <Card>
@@ -65,9 +76,7 @@ export default function LoginPage() {
               {...register('email')}
               disabled={isSubmitting}
             />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -79,16 +88,11 @@ export default function LoginPage() {
               {...register('password')}
               disabled={isSubmitting}
             />
-            {errors.password && (
-              <p className="text-sm text-red-600">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
           </div>
 
           <div className="text-right">
-            <Link
-              href={ROUTES.FORGOT_PASSWORD}
-              className="text-sm text-blue-600 hover:underline"
-            >
+            <Link href={ROUTES.FORGOT_PASSWORD} className="text-sm text-blue-600 hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -158,5 +162,5 @@ export default function LoginPage() {
         </p>
       </CardFooter>
     </Card>
-  );
+  )
 }

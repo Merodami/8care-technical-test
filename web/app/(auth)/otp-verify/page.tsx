@@ -1,22 +1,25 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/hooks';
-import { otpSchema, type OTPFormData } from '@/lib/validations';
-import { ROUTES } from '@/lib/constants';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useAuth } from '@/hooks'
+import { authAPI } from '@/lib/api'
+import { otpSchema, type OTPFormData } from '@/lib/validations'
+import { ROUTES } from '@/lib/constants'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function OTPVerifyPage() {
-  const router = useRouter();
-  const { loginWithOTP } = useAuth();
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter()
+  const { loginWithOTP } = useAuth()
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+  const [isResending, setIsResending] = useState(false)
 
   const {
     register,
@@ -24,17 +27,39 @@ export default function OTPVerifyPage() {
     formState: { errors, isSubmitting },
   } = useForm<OTPFormData>({
     resolver: zodResolver(otpSchema),
-  });
+  })
 
   const onSubmit = async (data: OTPFormData) => {
     try {
-      setError(null);
-      await loginWithOTP(data.code);
-      router.push(ROUTES.DASHBOARD);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid or expired OTP code');
+      setError(null)
+      await loginWithOTP(data.code)
+      router.push(ROUTES.DASHBOARD)
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined
+      setError(errorMessage || 'Invalid or expired OTP code')
     }
-  };
+  }
+
+  const handleResendOTP = async () => {
+    try {
+      setIsResending(true)
+      setError(null)
+      setSuccess(null)
+      await authAPI.resendOTP()
+      setSuccess('New OTP code sent to your email')
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined
+      setError(errorMessage || 'Failed to resend OTP')
+    } finally {
+      setIsResending(false)
+    }
+  }
 
   return (
     <Card>
@@ -52,6 +77,12 @@ export default function OTPVerifyPage() {
             </Alert>
           )}
 
+          {success && (
+            <Alert>
+              <AlertDescription>{success}</AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="code">OTP Code</Label>
             <Input
@@ -64,9 +95,7 @@ export default function OTPVerifyPage() {
               disabled={isSubmitting}
               autoComplete="one-time-code"
             />
-            {errors.code && (
-              <p className="text-sm text-red-600">{errors.code.message}</p>
-            )}
+            {errors.code && <p className="text-sm text-red-600">{errors.code.message}</p>}
           </div>
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
@@ -76,14 +105,15 @@ export default function OTPVerifyPage() {
           <div className="text-center">
             <button
               type="button"
-              className="text-sm text-blue-600 hover:underline"
-              disabled={isSubmitting}
+              className="text-sm text-blue-600 hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleResendOTP}
+              disabled={isSubmitting || isResending}
             >
-              Resend Code
+              {isResending ? 'Sending...' : 'Resend Code'}
             </button>
           </div>
         </form>
       </CardContent>
     </Card>
-  );
+  )
 }

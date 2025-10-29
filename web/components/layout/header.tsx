@@ -1,15 +1,15 @@
-'use client';
+'use client'
 
-import { useAuth } from '@/hooks';
-import { useUIStore } from '@/stores';
+import { useAuth } from '@/hooks'
+import { useUIStore } from '@/stores'
 
 export function Header() {
-  const { user, logout } = useAuth();
-  const { toggleSidebar } = useUIStore();
+  const { user, logout } = useAuth()
+  const { toggleSidebar } = useUIStore()
 
   const handleLogout = async () => {
-    await logout();
-  };
+    await logout()
+  }
 
   return (
     <header className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 h-16 flex items-center px-4">
@@ -51,5 +51,5 @@ export function Header() {
         )}
       </div>
     </header>
-  );
+  )
 }

@@ -1,25 +1,32 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { resetPasswordSchema, type ResetPasswordFormData } from '@/lib/validations';
-import { authAPI } from '@/lib/api';
-import { ROUTES } from '@/lib/constants';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { resetPasswordSchema, type ResetPasswordFormData } from '@/lib/validations'
+import { authAPI } from '@/lib/api'
+import { ROUTES } from '@/lib/constants'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function ResetPasswordPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get('token');
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const token = searchParams.get('token')
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   const {
     register,
@@ -27,23 +34,27 @@ export default function ResetPasswordPage() {
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
-  });
+  })
 
   const onSubmit = async (data: ResetPasswordFormData) => {
     if (!token) {
-      setError('Invalid or missing reset token');
-      return;
+      setError('Invalid or missing reset token')
+      return
     }
 
     try {
-      setError(null);
-      await authAPI.resetPassword(token, data.password);
-      setSuccess(true);
-      setTimeout(() => router.push(ROUTES.LOGIN), 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password');
+      setError(null)
+      await authAPI.resetPassword(token, data.password)
+      setSuccess(true)
+      setTimeout(() => router.push(ROUTES.LOGIN), 3000)
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined
+      setError(errorMessage || 'Failed to reset password')
     }
-  };
+  }
 
   if (!token) {
     return (
@@ -62,7 +73,7 @@ export default function ResetPasswordPage() {
           </Link>
         </CardFooter>
       </Card>
-    );
+    )
   }
 
   if (success) {
@@ -79,7 +90,7 @@ export default function ResetPasswordPage() {
           </Alert>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -105,9 +116,7 @@ export default function ResetPasswordPage() {
               {...register('password')}
               disabled={isSubmitting}
             />
-            {errors.password && (
-              <p className="text-sm text-red-600">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
             <p className="text-xs text-slate-500">
               Must be at least 8 characters with uppercase, lowercase, number, and special character
             </p>
@@ -133,5 +142,5 @@ export default function ResetPasswordPage() {
         </form>
       </CardContent>
     </Card>
-  );
+  )
 }

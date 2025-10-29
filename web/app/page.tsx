@@ -1,23 +1,23 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks';
-import { ROUTES } from '@/lib/constants';
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks'
+import { ROUTES } from '@/lib/constants'
 
 export default function Home() {
-  const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        router.push(ROUTES.DASHBOARD);
+        router.push(ROUTES.DASHBOARD)
       } else {
-        router.push(ROUTES.LOGIN);
+        router.push(ROUTES.LOGIN)
       }
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
@@ -26,5 +26,5 @@ export default function Home() {
         <p className="text-slate-600 dark:text-slate-400">Redirecting...</p>
       </div>
     </div>
-  );
+  )
 }

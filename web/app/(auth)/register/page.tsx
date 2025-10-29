@@ -1,24 +1,29 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useAuth } from '@/hooks';
-import { registerSchema, type RegisterFormData } from '@/lib/validations';
-import { ROUTES } from '@/lib/constants';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from 'react'
+import Link from 'next/link'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useAuth } from '@/hooks'
+import { registerSchema, type RegisterFormData } from '@/lib/validations'
+import { ROUTES } from '@/lib/constants'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 export default function RegisterPage() {
-  const router = useRouter();
-  const { register: registerUser } = useAuth();
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const { register: registerUser } = useAuth()
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
 
   const {
     register,
@@ -26,17 +31,21 @@ export default function RegisterPage() {
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-  });
+  })
 
   const onSubmit = async (data: RegisterFormData) => {
     try {
-      setError(null);
-      await registerUser(data);
-      setSuccess(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(null)
+      await registerUser(data)
+      setSuccess(true)
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined
+      setError(errorMessage || 'Registration failed. Please try again.')
     }
-  };
+  }
 
   if (success) {
     return (
@@ -58,7 +67,7 @@ export default function RegisterPage() {
           </Link>
         </CardFooter>
       </Card>
-    );
+    )
   }
 
   return (
@@ -97,9 +106,7 @@ export default function RegisterPage() {
                 {...register('lastName')}
                 disabled={isSubmitting}
               />
-              {errors.lastName && (
-                <p className="text-sm text-red-600">{errors.lastName.message}</p>
-              )}
+              {errors.lastName && <p className="text-sm text-red-600">{errors.lastName.message}</p>}
             </div>
           </div>
 
@@ -112,9 +119,7 @@ export default function RegisterPage() {
               {...register('email')}
               disabled={isSubmitting}
             />
-            {errors.email && (
-              <p className="text-sm text-red-600">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -126,9 +131,7 @@ export default function RegisterPage() {
               {...register('phone')}
               disabled={isSubmitting}
             />
-            {errors.phone && (
-              <p className="text-sm text-red-600">{errors.phone.message}</p>
-            )}
+            {errors.phone && <p className="text-sm text-red-600">{errors.phone.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -140,9 +143,7 @@ export default function RegisterPage() {
               {...register('password')}
               disabled={isSubmitting}
             />
-            {errors.password && (
-              <p className="text-sm text-red-600">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-sm text-red-600">{errors.password.message}</p>}
             <p className="text-xs text-slate-500">
               Must be at least 8 characters with uppercase, lowercase, number, and special character
             </p>
@@ -176,5 +177,5 @@ export default function RegisterPage() {
         </p>
       </CardFooter>
     </Card>
-  );
+  )
 }

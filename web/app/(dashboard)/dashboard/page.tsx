@@ -1,10 +1,10 @@
-'use client';
+'use client'
 
-import { useAuth, usePermissions } from '@/hooks';
+import { useAuth, usePermissions } from '@/hooks'
 
 export default function DashboardPage() {
-  const { user } = useAuth();
-  const { isSuperAdmin, isCoordinator, isCaregiver, isPatient } = usePermissions();
+  const { user } = useAuth()
+  const { isSuperAdmin, isCoordinator, isCaregiver, isPatient } = usePermissions()
 
   return (
     <div>
@@ -83,5 +83,5 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  );
+  )
 }

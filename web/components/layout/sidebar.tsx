@@ -1,18 +1,18 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { usePermissions } from '@/hooks';
-import { useUIStore } from '@/stores';
-import { ROUTES } from '@/lib/constants';
-import { cn } from '@/lib/utils/cn';
-import { RoleName } from '@/types';
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { usePermissions } from '@/hooks'
+import { useUIStore } from '@/stores'
+import { ROUTES } from '@/lib/constants'
+import { cn } from '@/lib/utils/cn'
+import { RoleName } from '@/types'
 
 interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ReactNode;
-  requiredRoles?: RoleName[];
+  name: string
+  href: string
+  icon: React.ReactNode
+  requiredRoles?: RoleName[]
 }
 
 const navItems: NavItem[] = [
@@ -79,26 +79,26 @@ const navItems: NavItem[] = [
       </svg>
     ),
   },
-];
+]
 
 export function Sidebar() {
-  const pathname = usePathname();
-  const { sidebarOpen } = useUIStore();
-  const { hasAnyRole } = usePermissions();
+  const pathname = usePathname()
+  const { sidebarOpen } = useUIStore()
+  const { hasAnyRole } = usePermissions()
 
   const filteredNavItems = navItems.filter((item) => {
-    if (!item.requiredRoles) return true;
-    return hasAnyRole(item.requiredRoles);
-  });
+    if (!item.requiredRoles) return true
+    return hasAnyRole(item.requiredRoles)
+  })
 
-  if (!sidebarOpen) return null;
+  if (!sidebarOpen) return null
 
   return (
     <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
       <nav className="flex-1 p-4">
         <ul className="space-y-2">
           {filteredNavItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href
             return (
               <li key={item.href}>
                 <Link
@@ -114,10 +114,10 @@ export function Sidebar() {
                   <span className="font-medium">{item.name}</span>
                 </Link>
               </li>
-            );
+            )
           })}
         </ul>
       </nav>
     </aside>
-  );
+  )
 }

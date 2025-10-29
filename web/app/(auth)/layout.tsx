@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: '8Care - Authentication',
   description: 'Sign in or create an account',
-};
+}
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,5 +18,5 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {children}
       </div>
     </div>
-  );
+  )
 }

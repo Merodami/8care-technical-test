@@ -1,10 +1,10 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 interface UIState {
-  sidebarOpen: boolean;
-  setSidebarOpen: (open: boolean) => void;
-  toggleSidebar: () => void;
+  sidebarOpen: boolean
+  setSidebarOpen: (open: boolean) => void
+  toggleSidebar: () => void
 }
 
 export const useUIStore = create<UIState>()(
@@ -20,4 +20,4 @@ export const useUIStore = create<UIState>()(
       name: '8care-ui-storage',
     },
   ),
-);
+)

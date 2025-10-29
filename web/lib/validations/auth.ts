@@ -1,9 +1,9 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const loginSchema = z.object({
   email: z.string().email('Invalid email address').min(1, 'Email is required'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
-});
+})
 
 export const registerSchema = z
   .object({
@@ -23,18 +23,18 @@ export const registerSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
-  });
+  })
 
 export const otpSchema = z.object({
   code: z
     .string()
     .length(6, 'OTP code must be 6 digits')
     .regex(/^\d+$/, 'OTP must contain only numbers'),
-});
+})
 
 export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address').min(1, 'Email is required'),
-});
+})
 
 export const resetPasswordSchema = z
   .object({
@@ -50,10 +50,10 @@ export const resetPasswordSchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ['confirmPassword'],
-  });
+  })
 
-export type LoginFormData = z.infer<typeof loginSchema>;
-export type RegisterFormData = z.infer<typeof registerSchema>;
-export type OTPFormData = z.infer<typeof otpSchema>;
-export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
-export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>;
+export type LoginFormData = z.infer<typeof loginSchema>
+export type RegisterFormData = z.infer<typeof registerSchema>
+export type OTPFormData = z.infer<typeof otpSchema>
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>

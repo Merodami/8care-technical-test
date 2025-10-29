@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/stores';
+import { useAuthStore } from '@/stores'
 
 export const useAuth = () => {
   const {
@@ -13,7 +13,7 @@ export const useAuth = () => {
     register,
     logout,
     refreshUser,
-  } = useAuthStore();
+  } = useAuthStore()
 
   return {
     user,
@@ -27,5 +27,5 @@ export const useAuth = () => {
     register,
     logout,
     refreshUser,
-  };
-};
+  }
+}

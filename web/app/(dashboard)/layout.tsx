@@ -1,21 +1,21 @@
-'use client';
+'use client'
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/header';
-import { Sidebar } from '@/components/layout/sidebar';
-import { useAuth } from '@/hooks';
-import { ROUTES } from '@/lib/constants';
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { Header } from '@/components/layout/header'
+import { Sidebar } from '@/components/layout/sidebar'
+import { useAuth } from '@/hooks'
+import { ROUTES } from '@/lib/constants'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter()
+  const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.push(ROUTES.LOGIN);
+      router.push(ROUTES.LOGIN)
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router])
 
   if (isLoading || !isAuthenticated) {
     return (
@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <p className="text-slate-600">Loading...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -36,5 +36,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>
-  );
+  )
 }

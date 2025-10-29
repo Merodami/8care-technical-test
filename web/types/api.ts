@@ -1,28 +1,28 @@
 export interface ApiError {
-  statusCode: number;
-  message: string;
-  errors?: ValidationError[];
-  timestamp: string;
-  path: string;
-  correlationId?: string;
+  statusCode: number
+  message: string
+  errors?: ValidationError[]
+  timestamp: string
+  path: string
+  correlationId?: string
 }
 
 export interface ValidationError {
-  field: string;
-  message: string;
+  field: string
+  message: string
 }
 
 export interface PaginatedResponse<T> {
-  data: T[];
+  data: T[]
   meta: {
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-  };
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+  }
 }
 
 export interface ApiResponse<T> {
-  data: T;
-  message?: string;
+  data: T
+  message?: string
 }
