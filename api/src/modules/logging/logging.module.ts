@@ -27,14 +27,20 @@ import { ConfigService } from '@nestjs/config';
               context: 'HTTP',
             }),
             serializers: {
-              req: (req) => ({
+              req: (req: {
+                id?: string;
+                method?: string;
+                url?: string;
+                remoteAddress?: string;
+                remotePort?: number;
+              }) => ({
                 id: req.id,
                 method: req.method,
                 url: req.url,
                 remoteAddress: req.remoteAddress,
                 remotePort: req.remotePort,
               }),
-              res: (res) => ({
+              res: (res: { statusCode?: number }) => ({
                 statusCode: res.statusCode,
               }),
             },

@@ -1,7 +1,7 @@
 import { ThrottlerModuleOptions } from '@nestjs/throttler';
-import { ThrottlerStorageRedisService } from '@nestjs/throttler/dist/throttler-storage-redis.service';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
+import { RedisThrottlerStorage } from './redis-throttler-storage';
 
 export const getThrottlerConfig = (configService: ConfigService): ThrottlerModuleOptions => {
   const redis = new Redis({
@@ -17,6 +17,6 @@ export const getThrottlerConfig = (configService: ConfigService): ThrottlerModul
         limit: 100,
       },
     ],
-    storage: new ThrottlerStorageRedisService(redis),
+    storage: new RedisThrottlerStorage(redis),
   };
 };

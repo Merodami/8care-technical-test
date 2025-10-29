@@ -3,6 +3,16 @@ import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator';
 import { InsufficientPermissionsException } from '../exceptions/custom.exceptions';
 
+interface UserWithRoles {
+  id: string;
+  email: string;
+  roles?: string[];
+}
+
+interface RequestWithUser {
+  user?: UserWithRoles;
+}
+
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -17,14 +27,14 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
     if (!user || !user.roles) {
       throw new InsufficientPermissionsException();
     }
 
-    const hasRole = requiredRoles.some((role) => user.roles.includes(role));
+    const hasRole = requiredRoles.some((role) => user.roles!.includes(role));
 
     if (!hasRole) {
       throw new InsufficientPermissionsException();

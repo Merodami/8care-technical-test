@@ -6,7 +6,7 @@ import {
   MemoryHealthIndicator,
 } from '@nestjs/terminus';
 import { Public } from '../../common/decorators';
-import { PrismaService } from '../database';
+import { PrismaService } from '../../database/prisma.service';
 
 @Controller('health')
 export class HealthController {
@@ -21,9 +21,7 @@ export class HealthController {
   @Public()
   @HealthCheck()
   check() {
-    return this.health.check([
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
-    ]);
+    return this.health.check([() => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024)]);
   }
 
   @Get('ready')

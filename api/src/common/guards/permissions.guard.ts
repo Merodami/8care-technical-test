@@ -3,6 +3,16 @@ import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import { InsufficientPermissionsException } from '../exceptions/custom.exceptions';
 
+interface UserWithPermissions {
+  id: string;
+  email: string;
+  permissions?: string[];
+}
+
+interface RequestWithUser {
+  user?: UserWithPermissions;
+}
+
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
@@ -17,7 +27,7 @@ export class PermissionsGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
     if (!user || !user.permissions) {
@@ -25,7 +35,7 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const hasAllPermissions = requiredPermissions.every((permission) =>
-      user.permissions.includes(permission),
+      user.permissions!.includes(permission),
     );
 
     if (!hasAllPermissions) {

@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -49,7 +48,7 @@ model User {
 
   userRoles                UserRole[]
   profile                  Profile?
-  authProviders            AuthProvider_Model[]        @relation("UserAuthProviders")
+  authProviders            UserAuthProvider[]          @relation("UserAuthProviders")
   refreshTokens            RefreshToken[]
   emailVerificationTokens  EmailVerificationToken[]
   passwordResetTokens      PasswordResetToken[]
@@ -180,7 +179,7 @@ model CoordinatorProfile {
   @@map("coordinator_profiles")
 }
 
-model AuthProvider_Model {
+model UserAuthProvider {
   id             String       @id @default(uuid()) @db.Uuid
   userId         String       @map("user_id") @db.Uuid
   provider       AuthProvider

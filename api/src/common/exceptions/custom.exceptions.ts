@@ -17,7 +17,10 @@ export class InvalidCredentialsException extends HttpException {
 
 export class EmailNotVerifiedException extends HttpException {
   constructor() {
-    super('Email address is not verified. Please verify your email before logging in.', HttpStatus.FORBIDDEN);
+    super(
+      'Email address is not verified. Please verify your email before logging in.',
+      HttpStatus.FORBIDDEN,
+    );
   }
 }
 
@@ -59,10 +62,7 @@ export class AccountInactiveException extends HttpException {
 
 export class RoleNotFoundException extends HttpException {
   constructor(roleId?: string) {
-    super(
-      roleId ? `Role with ID '${roleId}' not found` : 'Role not found',
-      HttpStatus.NOT_FOUND,
-    );
+    super(roleId ? `Role with ID '${roleId}' not found` : 'Role not found', HttpStatus.NOT_FOUND);
   }
 }
 
