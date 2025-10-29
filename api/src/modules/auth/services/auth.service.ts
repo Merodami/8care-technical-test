@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { TokenService } from './token.service';
 import { OtpService } from './otp.service';
@@ -29,7 +29,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new InvalidCredentialsException();
+      throw new ConflictException('Email already registered');
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
@@ -318,6 +318,7 @@ export class AuthService {
         id: user.id,
         email: user.email,
         roles,
+        permissions,
         profile: user.profile,
       },
     };

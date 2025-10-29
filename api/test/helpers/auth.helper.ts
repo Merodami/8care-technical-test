@@ -13,10 +13,11 @@ export class AuthHelper {
       .send({ email, password })
       .expect(200);
 
-    const setCookieHeader = response.headers['set-cookie'] as string[] | undefined;
-    const refreshTokenCookie = setCookieHeader?.find((cookie: string) =>
-      cookie.startsWith('refreshToken='),
-    );
+    const setCookieHeader = response.headers['set-cookie'];
+    const cookies: string[] = Array.isArray(setCookieHeader)
+      ? setCookieHeader
+      : [setCookieHeader].filter(Boolean);
+    const refreshTokenCookie = cookies.find((cookie) => cookie.startsWith('refreshToken='));
 
     const responseBody = response.body as { accessToken: string };
     return {

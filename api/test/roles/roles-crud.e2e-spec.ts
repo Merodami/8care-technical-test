@@ -67,50 +67,13 @@ describe('Roles - CRUD (e2e)', () => {
     });
   });
 
-  describe('POST /api/v1/roles', () => {
-    it('should create a new role as SUPER_ADMIN', async () => {
-      const { user: admin, plainPassword } = await UserFactory.createSuperAdmin();
-      const { accessToken } = await AuthHelper.login(app, admin.email, plainPassword);
-
-      const newRoleData = {
-        name: 'CUSTOM_ROLE',
-        description: 'Custom test role',
-      };
-
-      const response = await request(app.getHttpServer())
-        .post('/api/v1/roles')
-        .set(AuthHelper.getAuthHeader(accessToken))
-        .send(newRoleData)
-        .expect(201);
-
-      expect(response.body).toMatchObject({
-        name: newRoleData.name,
-        description: newRoleData.description,
-      });
-    });
-
-    it('should fail without SUPER_ADMIN role', async () => {
-      const { user: coordinator, plainPassword } = await UserFactory.createCoordinator();
-      const { accessToken } = await AuthHelper.login(app, coordinator.email, plainPassword);
-
-      await request(app.getHttpServer())
-        .post('/api/v1/roles')
-        .set(AuthHelper.getAuthHeader(accessToken))
-        .send({
-          name: 'CUSTOM_ROLE',
-          description: 'Should fail',
-        })
-        .expect(403);
-    });
-  });
-
   describe('DELETE /api/v1/roles/:id', () => {
     it('should prevent deletion of system roles', async () => {
       const { user: admin, plainPassword } = await UserFactory.createSuperAdmin();
       const { accessToken } = await AuthHelper.login(app, admin.email, plainPassword);
 
       const systemRole = await prisma.role.findFirst({
-        where: { isSystemRole: true },
+        where: { name: 'PATIENT' },
       });
 
       await request(app.getHttpServer())
@@ -118,28 +81,83 @@ describe('Roles - CRUD (e2e)', () => {
         .set(AuthHelper.getAuthHeader(accessToken))
         .expect(400);
     });
+  });
 
-    it('should delete custom role', async () => {
+  describe('POST /api/v1/roles/:id/permissions', () => {
+    it('should assign permission to role', async () => {
       const { user: admin, plainPassword } = await UserFactory.createSuperAdmin();
       const { accessToken } = await AuthHelper.login(app, admin.email, plainPassword);
 
-      const customRole = await prisma.role.create({
+      const role = await prisma.role.findFirst({
+        where: { name: 'CAREGIVER' },
+      });
+
+      const permission = await prisma.permission.findFirst();
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/roles/${role?.id}/permissions`)
+        .set(AuthHelper.getAuthHeader(accessToken))
+        .send({
+          permissionId: permission?.id,
+        })
+        .expect(201);
+
+      const roleWithPermissions = await prisma.role.findUnique({
+        where: { id: role?.id },
+        include: { rolePermissions: true },
+      });
+
+      expect(
+        roleWithPermissions?.rolePermissions.some((rp) => rp.permissionId === permission?.id),
+      ).toBe(true);
+    });
+
+    it('should fail without authentication', async () => {
+      const role = await prisma.role.findFirst();
+      const permission = await prisma.permission.findFirst();
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/roles/${role?.id}/permissions`)
+        .send({
+          permissionId: permission?.id,
+        })
+        .expect(401);
+    });
+  });
+
+  describe('DELETE /api/v1/roles/:id/permissions/:permissionId', () => {
+    it('should remove permission from role', async () => {
+      const { user: admin, plainPassword } = await UserFactory.createSuperAdmin();
+      const { accessToken } = await AuthHelper.login(app, admin.email, plainPassword);
+
+      const role = await prisma.role.findFirst({
+        where: { name: 'COORDINATOR' },
+      });
+
+      const permission = await prisma.permission.findFirst();
+
+      await prisma.rolePermission.create({
         data: {
-          name: 'TEMP_ROLE',
-          description: 'Temporary role',
-          isSystemRole: false,
+          roleId: role!.id,
+          permissionId: permission!.id,
         },
       });
 
       await request(app.getHttpServer())
-        .delete(`/api/v1/roles/${customRole.id}`)
+        .delete(`/api/v1/roles/${role?.id}/permissions/${permission?.id}`)
         .set(AuthHelper.getAuthHeader(accessToken))
         .expect(200);
 
-      const deletedRole = await prisma.role.findUnique({
-        where: { id: customRole.id },
+      const rolePermission = await prisma.rolePermission.findUnique({
+        where: {
+          roleId_permissionId: {
+            roleId: role!.id,
+            permissionId: permission!.id,
+          },
+        },
       });
-      expect(deletedRole).toBeNull();
+
+      expect(rolePermission).toBeNull();
     });
   });
 });

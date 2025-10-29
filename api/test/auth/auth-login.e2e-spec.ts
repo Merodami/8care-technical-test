@@ -39,7 +39,6 @@ describe('Auth - Login (e2e)', () => {
         .expect(200);
 
       expect(response.body).toMatchObject({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         accessToken: expect.any(String),
         user: {
           id: user.id,
@@ -47,10 +46,11 @@ describe('Auth - Login (e2e)', () => {
         },
       });
 
-      const setCookieHeader = response.headers['set-cookie'] as string[] | undefined;
-      const refreshCookie = setCookieHeader?.find((cookie: string) =>
-        cookie.startsWith('refreshToken='),
-      );
+      const setCookieHeader = response.headers['set-cookie'];
+      const cookies: string[] = Array.isArray(setCookieHeader)
+        ? setCookieHeader
+        : [setCookieHeader].filter(Boolean);
+      const refreshCookie = cookies.find((cookie) => cookie.startsWith('refreshToken='));
       expect(refreshCookie).toBeDefined();
     });
 

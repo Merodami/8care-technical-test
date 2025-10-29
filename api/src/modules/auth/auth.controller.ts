@@ -9,6 +9,7 @@ import {
   Res,
   HttpCode,
   HttpStatus,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
 import { RegisterDto } from './dto/register.dto';
@@ -21,10 +22,6 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AuthGuard } from '@nestjs/passport';
 import type { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
-
-interface RequestWithCookies extends Request {
-  cookies?: { refreshToken?: string };
-}
 
 @Controller('auth')
 export class AuthController {
@@ -92,20 +89,29 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refreshToken(@Body() dto: RefreshTokenDto, @Req() req: RequestWithCookies) {
-    const token = dto.refreshToken || req.cookies?.refreshToken;
+  async refreshToken(@Body() dto: RefreshTokenDto, @Req() req: Request) {
+    const cookies = req.cookies as { refreshToken?: string } | undefined;
+    const token = dto.refreshToken || cookies?.refreshToken;
+    if (!token) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
     return this.authService.refreshToken(token);
   }
 
   @Post('logout')
+  @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
   async logout(
     @Body() dto: RefreshTokenDto,
-    @Req() req: RequestWithCookies,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const token = dto.refreshToken || req.cookies?.refreshToken;
+    const cookies = req.cookies as { refreshToken?: string } | undefined;
+    const token = dto.refreshToken || cookies?.refreshToken;
     this.clearRefreshTokenCookie(res);
+    if (!token) {
+      throw new UnauthorizedException('Refresh token is required');
+    }
     return this.authService.logout(token);
   }
 

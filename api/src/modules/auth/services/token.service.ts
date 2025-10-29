@@ -39,6 +39,9 @@ export class TokenService {
   }
 
   async validateRefreshToken(token: string): Promise<{ userId: string } | null> {
+    if (!token) {
+      return null;
+    }
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     const refreshToken = await this.prisma.refreshToken.findUnique({
@@ -54,6 +57,9 @@ export class TokenService {
   }
 
   async revokeRefreshToken(token: string): Promise<void> {
+    if (!token) {
+      return;
+    }
     const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
     await this.prisma.refreshToken.updateMany({

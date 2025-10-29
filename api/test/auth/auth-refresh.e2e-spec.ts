@@ -37,7 +37,6 @@ describe('Auth - Refresh Token (e2e)', () => {
         .expect(200);
 
       expect(response.body).toMatchObject({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         accessToken: expect.any(String),
       });
     });

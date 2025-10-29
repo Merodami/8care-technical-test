@@ -39,7 +39,6 @@ describe('Auth - Registration (e2e)', () => {
         .expect(201);
 
       expect(response.body).toMatchObject({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         message: expect.any(String),
       });
 

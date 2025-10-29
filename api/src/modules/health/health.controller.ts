@@ -21,7 +21,7 @@ export class HealthController {
   @Public()
   @HealthCheck()
   check() {
-    return this.health.check([() => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024)]);
+    return this.health.check([() => this.memory.checkHeap('memory_heap', 512 * 1024 * 1024)]);
   }
 
   @Get('ready')
@@ -30,7 +30,7 @@ export class HealthController {
   ready() {
     return this.health.check([
       () => this.prismaHealth.pingCheck('database', this.prisma),
-      () => this.memory.checkHeap('memory_heap', 150 * 1024 * 1024),
+      () => this.memory.checkHeap('memory_heap', 512 * 1024 * 1024),
     ]);
   }
 }

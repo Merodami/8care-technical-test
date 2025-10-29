@@ -88,6 +88,27 @@ export class TestContainerSetup {
       skipDuplicates: true,
     });
 
+    await this.prisma.permission.createMany({
+      data: [
+        { resource: 'users', action: 'create', description: 'Create new users' },
+        { resource: 'users', action: 'read', description: 'View users' },
+        { resource: 'users', action: 'update', description: 'Update users' },
+        { resource: 'users', action: 'delete', description: 'Delete users' },
+        { resource: 'profiles', action: 'read', description: 'View profiles' },
+        { resource: 'profiles', action: 'update', description: 'Update profiles' },
+        { resource: 'roles', action: 'create', description: 'Create roles' },
+        { resource: 'roles', action: 'read', description: 'View roles' },
+        { resource: 'roles', action: 'update', description: 'Update roles' },
+        { resource: 'roles', action: 'delete', description: 'Delete roles' },
+        { resource: 'permissions', action: 'create', description: 'Create permissions' },
+        { resource: 'permissions', action: 'read', description: 'View permissions' },
+        { resource: 'permissions', action: 'update', description: 'Update permissions' },
+        { resource: 'permissions', action: 'delete', description: 'Delete permissions' },
+        { resource: 'audit', action: 'read', description: 'View audit logs' },
+      ],
+      skipDuplicates: true,
+    });
+
     console.log('Database seeded');
   }
 

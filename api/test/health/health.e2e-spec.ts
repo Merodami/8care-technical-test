@@ -28,7 +28,6 @@ describe('Health (e2e)', () => {
       const response = await request(app.getHttpServer()).get('/api/v1/health/ready').expect(200);
 
       expect(response.body).toMatchObject({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         status: expect.any(String),
       });
     });
